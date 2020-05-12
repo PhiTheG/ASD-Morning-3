@@ -3,7 +3,9 @@ package com.asdmorning3.basic;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class Vocable implements Serializable {
 
@@ -15,11 +17,13 @@ public class Vocable implements Serializable {
 		this.word_ = word;
 		this.language_ = language;
 		this.translation_ = new HashMap<Language, Vocable>();
+		this.tags_ = new ArrayList<Tags>();
 	}
 
 	public enum Language {
 		ENG,
-		GER
+		GER,
+		FRA
 	}
 
 	private String word_;
@@ -27,6 +31,8 @@ public class Vocable implements Serializable {
 	private Language language_ ;
 
 	private HashMap<Language, Vocable> translation_;
+
+	private ArrayList<Tags> tags_;
 
 	public Vocable getTranslation(@NotNull Language language) throws IndexOutOfBoundsException, NullPointerException, IllegalArgumentException
 	{
@@ -57,6 +63,22 @@ public class Vocable implements Serializable {
 		translation_.remove(language);
 		translation_.put(language, vocable);
 	}
+	public void editTranslation(Language language, String vocable)
+	{
+		Vocable tmp_vcb = translation_.get(language), new_vcb;
+		translation_.remove(language);
+		translation_.put(language, (new_vcb = new Vocable(vocable, language)));
+		for(Vocable.Language l : Vocable.Language.values())
+		{
+			if(l != language)
+			{
+				try {
+					new_vcb.addTranslation(tmp_vcb.getTranslation(l));
+				}
+				catch(NullPointerException ex) {}
+			}
+		}
+	}
 
 	public void removeTranslation(Language language)
 	{
@@ -65,6 +87,19 @@ public class Vocable implements Serializable {
 
 	public String getWord() {
 		return word_;
+	}
+
+	public String getWord(Language language) {
+		try {
+			return getTranslation(language).getWord();
+		}
+		catch(IllegalArgumentException e) {
+			return word_;
+		}
+		catch(Exception e)
+		{
+			return "";
+		}
 	}
 
 	public void setWord_(String word_) {
@@ -83,4 +118,57 @@ public class Vocable implements Serializable {
 	{
 		return vocable.getWord().equals(word_) && vocable.getLanguage().equals(language_);
 	}
+
+	public static String getLanguageWord(Language language)
+	{
+		switch(language)
+		{
+			case GER:
+				return "Deutsch";
+			case ENG:
+				return "English";
+			default:
+				return "Language not Implemented";
+		}
+  }
+
+	public boolean addTag(Tags addTag)
+	{
+		for(Tags tag : tags_)
+		{
+			if(tag.getDescription().equals(addTag.getDescription()))
+			{
+				return false;
+			}
+		}
+		tags_.add(addTag);
+		return true;
+	}
+
+	public boolean removeTag(Tags removeTag)
+	{
+		for(Tags tag : tags_)
+		{
+			if(tag.getDescription().equals(removeTag.getDescription()))
+			{
+				tags_.remove(tag);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public ArrayList<Tags> getTags() { return tags_; }
+
+	public boolean hasTag(Tags hasTag)
+	{
+		for(Tags tag : tags_)
+		{
+			if(tag.getDescription().equals(hasTag.getDescription()))
+			{
+				return true;
+			}
+		}
+		return false;
+  }
 }
